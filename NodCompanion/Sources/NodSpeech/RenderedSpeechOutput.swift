@@ -50,6 +50,7 @@ public final class RenderedSpeechOutput: SpeechOutput {
     }
 
     public func speak(_ segment: SpeechSegment) {
+        VoiceAudioEngine.trace("voice: asked to say \(segment.text.count) chars in \(segment.language)")
         pending += 1
         if pending == 1 { onSpeakingChanged?(true) }
         let generation = self.generation
@@ -62,7 +63,9 @@ public final class RenderedSpeechOutput: SpeechOutput {
             guard let self, self.generation == generation else { return }
             for voice in candidates {
                 do {
+                    VoiceAudioEngine.trace("voice: rendering with \(type(of: voice))")
                     let rendered = try await voice.render(text: segment.text, language: segment.language)
+                    VoiceAudioEngine.trace("voice: rendered \(rendered.samples.count) samples, current=\(self.generation == generation)")
                     guard self.generation == generation else { return }
                     if self.lastProblem != nil { self.lastProblem = nil }
                     audio.play(samples: rendered.samples, sampleRate: rendered.sampleRate) { [weak self] failure in
@@ -70,6 +73,7 @@ public final class RenderedSpeechOutput: SpeechOutput {
                     }
                     return
                 } catch {
+                    VoiceAudioEngine.trace("voice: render failed: \(error)")
                     guard self.generation == generation else { return }
                     self.lastProblem = String(describing: error)
                 }
@@ -80,6 +84,7 @@ public final class RenderedSpeechOutput: SpeechOutput {
     }
 
     public func stop() {
+        VoiceAudioEngine.trace("voice: stop")
         generation += 1
         lastRender = nil
         audio.stopPlayback()

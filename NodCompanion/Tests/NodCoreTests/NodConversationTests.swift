@@ -197,4 +197,58 @@ final class NodConversationTests: XCTestCase {
         XCTAssertTrue(model.pendingApprovals.isEmpty)
         model.shutDown()
     }
+
+    func testAReplyThatWasNotStreamedIsSpokenFromNodsRecord() async {
+        let model = makeModel()
+        model.send("What is on my calendar?")
+        await until("Nod to accept") { self.messages(model).first?.status == .delivered }
+        let turn = turn(of: messages(model)[0])
+
+        // Nod answers without streaming: the reply is only in its record.
+        nod.finish(turn: turn, reply: "Stand-up at ten.")
+        await until("the reply") { self.messages(model).count == 2 }
+        await until("the reply to be spoken") { !self.speech.spoken.isEmpty }
+
+        XCTAssertEqual(speech.spoken.map(\.text), ["Stand-up at ten."])
+        model.shutDown()
+    }
+
+    func testAReplyToAMessageThatWasLeftIsSpokenWhenItArrives() async {
+        let model = makeModel()
+        model.send("What is on my calendar?")
+        await until("Nod to accept") { self.messages(model).first?.status == .delivered }
+        let first = turn(of: messages(model)[0])
+        // Another utterance before any text came.
+        model.send("And tomorrow?")
+        await until("Nod to accept the second") { self.messages(model).count == 2 && self.messages(model)[1].status == .delivered }
+        let second = turn(of: messages(model)[1])
+
+        nod.addMessage(role: "assistant", text: "Stand-up at ten.", turn: first)
+        nod.setTurn(first, status: "succeeded")
+        nod.finish(turn: second, reply: "Tomorrow is free.")
+        await until("both replies") { self.messages(model).count == 4 }
+        await until("the replies to be spoken") { self.speech.spoken.count == 2 }
+
+        // The turn followed now passes on its own reply; the one left behind comes from Nod's record.
+        XCTAssertEqual(speech.spoken.map(\.text), ["Tomorrow is free.", "Stand-up at ten."])
+        model.shutDown()
+    }
+
+    func testAStreamedReplyIsNotSpokenAgainFromNodsRecord() async {
+        let model = makeModel()
+        model.send("Hello")
+        await until("Nod to accept") { self.messages(model).first?.status == .delivered }
+        let turn = turn(of: messages(model)[0])
+        nod.delta(turn: turn, "Hi there.")
+        await until("the reply") { self.messages(model).count == 2 }
+        nod.finish(turn: turn, reply: "Hi there.")
+        await until("the turn to end") { model.phase == .idle }
+        await model.reloadTask?.value
+        nod.addMessage(role: "assistant", text: "A reminder.")
+        nod.refresh()
+        await until("the reminder") { self.messages(model).count == 3 }
+
+        XCTAssertEqual(speech.spoken.map(\.text), ["Hi there."], "neither the reply again nor the later note")
+        model.shutDown()
+    }
 }

@@ -54,6 +54,12 @@ public final class ConversationModel {
     @ObservationIgnored private var replyID: UUID?
     @ObservationIgnored private var chunker = SentenceChunker()
     @ObservationIgnored private var speechMutedForTurn = false
+    /// Whether the turn in progress has streamed any reply text.
+    @ObservationIgnored private var turnHadText = false
+    /// The earliest message sent from here whose reply was not streamed: its turn ended, or
+    /// was left for a newer message, before any text came. Nod's reply to it then only
+    /// appears when the conversation is read again, and is spoken from there.
+    @ObservationIgnored private var unspokenSince: UUID?
     /// What the app has said lately, to recognise its own voice when the microphone hears it.
     @ObservationIgnored private var recentlySpoken: [(text: String, date: Date)] = []
     /// The voice is held because the microphone heard something while it spoke.
@@ -225,10 +231,27 @@ public final class ConversationModel {
             }
         }
         items = merged + unsent
+        speakRepliesNotStreamed(in: merged, shown: local)
         if let store {
             let snapshot = items
             Task.detached(priority: .utility) { store.save(snapshot) }
         }
+    }
+
+    /// Speaks Nod's replies to a message whose turn streamed no text: those in its record
+    /// after that message that were not on screen before. A streamed reply keeps the
+    /// identifier it was shown under, so it counts as shown.
+    private func speakRepliesNotStreamed(in merged: [ConversationItem], shown: [UUID: ChatMessage]) {
+        guard let since = unspokenSince else { return }
+        guard let start = merged.firstIndex(where: { if case .message(let message) = $0 { return message.id == since } else { return false } }) else { return }
+        var replies: [String] = []
+        for case .message(let message) in merged[merged.index(after: start)...] where message.role == .assistant && shown[message.id] == nil {
+            replies.append(message.text)
+        }
+        guard !replies.isEmpty else { return }
+        Self.trace("speaking \(replies.count) repl(ies) that arrived without streaming")
+        unspokenSince = nil
+        replies.forEach(speak)
     }
 
     // MARK: Sending
@@ -267,6 +290,7 @@ public final class ConversationModel {
         accepted = false
         replyID = nil
         speechMutedForTurn = false
+        turnHadText = false
         chunker.reset()
         phase = .sending
         turnTask = Task { [weak self] in await self?.runTurn(request) }
@@ -317,7 +341,20 @@ public final class ConversationModel {
         }
     }
 
+    /// Development aid: with `NOD_AUDIO_TRACE` set, why replies are or are not spoken is
+    /// written to standard error.
+    private static let tracing = ProcessInfo.processInfo.environment["NOD_AUDIO_TRACE"] != nil
+    private static func trace(_ text: @autoclosure () -> String) {
+        guard tracing else { return }
+        FileHandle.standardError.write(Data("[talk \(String(format: "%.3f", ProcessInfo.processInfo.systemUptime))] \(text())\n".utf8))
+    }
+
     private func handle(_ event: NodEvent) {
+        if case .textDelta(let text) = event {
+            Self.trace("text \(text.count) chars")
+        } else {
+            Self.trace("event \(String(describing: event).prefix(80))")
+        }
         switch event {
         case .accepted:
             accepted = true
@@ -326,6 +363,7 @@ public final class ConversationModel {
         case .thinking:
             phase = .thinking
         case .textDelta(let text):
+            turnHadText = true
             appendToReply(text)
             phase = .responding
             for sentence in chunker.append(text) { speak(sentence) }
@@ -356,11 +394,18 @@ public final class ConversationModel {
             if pendingApprovals.isEmpty, phase == .waitingForApproval { phase = .thinking }
         case .completed:
             closeReplySegment()
+            noteTurnWithoutText()
             activeRequestID = nil
             turnTask = nil
             phase = .idle
             reloadTask = Task { [weak self] in await self?.reloadConversation() }
         }
+    }
+
+    private func noteTurnWithoutText() {
+        guard let requestID = activeRequestID, !turnHadText, unspokenSince == nil else { return }
+        Self.trace("turn ended without streamed text; its reply will be spoken from Nod's record")
+        unspokenSince = requestID
     }
 
     private func endTurnInFailure(_ request: TurnRequest, userStatus: ChatMessage.Status, note: String) {
@@ -380,6 +425,7 @@ public final class ConversationModel {
     /// The user's Stop: playback ends at once, Nod is told to stop working, and approvals that
     /// were waiting are closed without a decision.
     public func interrupt() {
+        Self.trace("interrupt")
         speech.stop()
         chunker.reset()
         guard let requestID = activeRequestID else { return }
@@ -402,8 +448,10 @@ public final class ConversationModel {
     /// not told to stop: its stop ends everything it is doing in the conversation, which is
     /// too much for a new message. Open approvals stay open; they are Nod's to close.
     private func leaveTurn() {
+        Self.trace("leaveTurn")
         speech.stop()
         chunker.reset()
+        noteTurnWithoutText()
         guard let requestID = activeRequestID else { return }
         activeRequestID = nil
         turnTask?.cancel()
@@ -416,7 +464,9 @@ public final class ConversationModel {
 
     /// Stops playback and stays silent for the rest of this reply. Nod keeps working.
     public func stopSpeaking() {
+        Self.trace("stopSpeaking: the rest of this reply stays silent")
         speech.stop()
+        unspokenSince = nil
         chunker.reset()
         speechMutedForTurn = true
         voiceHeldForUser = false
@@ -568,6 +618,7 @@ public final class ConversationModel {
             userBeganSpeaking()
             liveTranscript = text
         case .final(let text):
+            Self.trace("heard \(text.count) chars: voiceHeld=\(voiceHeldForUser)")
             userIsSpeaking = false
             liveTranscript = ""
             if voiceHeldForUser {
@@ -595,6 +646,7 @@ public final class ConversationModel {
     /// working either way.
     private func userBeganSpeaking() {
         guard !userIsSpeaking else { return }
+        Self.trace("user began speaking: appSpeaking=\(isSpeaking)")
         userIsSpeaking = true
         guard isSpeaking else { return }
         speech.pause()
@@ -604,6 +656,7 @@ public final class ConversationModel {
     // MARK: Speaking
 
     private func speak(_ text: String) {
+        Self.trace("speak \(text.count) chars: speaksReplies=\(speaksReplies) dialogue=\(isDialogueActive) muted=\(speechMutedForTurn)")
         guard speaksReplies || isDialogueActive, !speechMutedForTurn else { return }
         let date = now()
         recentlySpoken.removeAll { date.timeIntervalSince($0.date) > 60 }

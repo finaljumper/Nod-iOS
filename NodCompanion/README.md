@@ -266,6 +266,16 @@ Two things to know before changing this part:
   dictation or dialogue had ended, such as the samples in Settings, could come out wrong, and
   a reply that switched between Phonon and Supertonic could be cut. The fix is checked in the
   simulator only; the case after a dialogue needs a real device.
+- On an iPhone, a sample played in Settings after a dialogue failed with `kAUStartIO`
+  'what': the engine had voice processing switched off again and would not start its output.
+  The engine is now replaced by a new one whenever the microphone starts or stops, and again
+  if it ever fails to start. On the iPhone 17 Pro the samples and dialogue replies play since.
+- In a dialogue, a reply whose turn streamed no text (the app had moved on to a newer
+  utterance, or Nod answered without streaming) only appeared on screen and was never
+  spoken. Such replies are now spoken when they arrive in Nod's record; seen working on the
+  iPhone 17 Pro.
+- `NOD_AUDIO_TRACE` also writes why a reply is or is not spoken (`[talk …]` lines) and what
+  each voice renders.
 - When the system resets the audio (a route change, say) it stops the engine and the player.
   The engine now gives the player everything not yet heard once more; the sentence that was
   being heard starts again. If the engine cannot start, the system voice says the sentence

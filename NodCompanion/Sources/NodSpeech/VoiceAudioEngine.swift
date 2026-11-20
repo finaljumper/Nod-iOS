@@ -11,8 +11,10 @@ import NodCore
 public final class VoiceAudioEngine: @unchecked Sendable {
     public static let shared = VoiceAudioEngine()
 
-    private let engine = AVAudioEngine()
-    private let player = AVAudioPlayerNode()
+    /// Replaced by a new one after the microphone was used, see `rebuildEngine`. Only touched
+    /// on `queue`, apart from `init`.
+    private var engine = AVAudioEngine()
+    private var player = AVAudioPlayerNode()
     /// Serialises every change to the engine's configuration.
     private let queue = DispatchQueue(label: "Nod.VoiceAudioEngine")
     private let lock = NSLock()
@@ -47,6 +49,29 @@ public final class VoiceAudioEngine: @unchecked Sendable {
 
     public init() {
         engine.attach(player)
+        observeConfigurationChanges()
+    }
+
+    deinit {
+        if let observer { NotificationCenter.default.removeObserver(observer) }
+    }
+
+    /// Replaces the engine and its player with new ones. An engine on which voice processing
+    /// was switched off can fail to start its output again on a device (`kAUStartIO` fails
+    /// with 'what'); a new engine starts. What the old player was given is lost.
+    private func rebuildEngine() {
+        Self.trace("rebuilding the engine")
+        if let observer { NotificationCenter.default.removeObserver(observer) }
+        engine.mainMixerNode.removeTap(onBus: 0)
+        engine.inputNode.removeTap(onBus: 0)
+        engine.stop()
+        engine = AVAudioEngine()
+        player = AVAudioPlayerNode()
+        engine.attach(player)
+        observeConfigurationChanges()
+    }
+
+    private func observeConfigurationChanges() {
         // The system stops the engine when the audio route changes (headphones, a call).
         observer = NotificationCenter.default.addObserver(
             forName: .AVAudioEngineConfigurationChange, object: engine, queue: nil
@@ -68,10 +93,6 @@ public final class VoiceAudioEngine: @unchecked Sendable {
                 Self.trace("after restart: engineRunning=\(self.engine.isRunning) playerPlaying=\(self.player.isPlaying)")
             }
         }
-    }
-
-    deinit {
-        if let observer { NotificationCenter.default.removeObserver(observer) }
     }
 
     /// Whether speech handed to `play` is still to be heard.
@@ -266,7 +287,11 @@ public final class VoiceAudioEngine: @unchecked Sendable {
         let (stream, continuation) = AsyncStream<AVAudioPCMBuffer>.makeStream(bufferingPolicy: .bufferingNewest(500))
         try queue.sync {
             lock.withLock { capture?.finish() }
-            engine.stop()
+            // A new engine each time: voice processing must be on before the engine's output
+            // is first wired up. An engine that has already played without it keeps playing
+            // around the echo cancellation, and the microphone hears the app's own voice.
+            player.stop()
+            rebuildEngine()
             try configureSession(recording: true)
             let input = engine.inputNode
             // Must be set while the engine is stopped. It also routes playback through the
@@ -283,6 +308,8 @@ public final class VoiceAudioEngine: @unchecked Sendable {
             }
             lock.withLock { capture = continuation }
             try startEngineIfNeeded()
+            // What the old player was given went with it.
+            playQueuedAgain()
         }
         return stream
     }
@@ -297,6 +324,10 @@ public final class VoiceAudioEngine: @unchecked Sendable {
             engine.inputNode.removeTap(onBus: 0)
             engine.stop()
             try? engine.inputNode.setVoiceProcessingEnabled(false)
+            // Playback goes on with a new engine: this one, with voice processing switched
+            // off again, may not start its output any more.
+            player.stop()
+            rebuildEngine()
             try? configureSession(recording: false)
             // Stopping the engine cut off whatever was being said. Its pieces are reported as
             // played, so that whoever queued them carries on with the next sentence.
@@ -319,6 +350,20 @@ public final class VoiceAudioEngine: @unchecked Sendable {
 
     private func startEngineIfNeeded() throws {
         guard !engine.isRunning else { return }
+        do {
+            try startEngine()
+        } catch {
+            // The microphone's tap is on this engine, so it cannot be swapped while capturing.
+            guard !isCapturing else { throw error }
+            Self.trace("engine start failed: \(error)")
+            rebuildEngine()
+            try startEngine()
+            // The old player's pieces went with it.
+            playQueuedAgain()
+        }
+    }
+
+    private func startEngine() throws {
         if !isCapturing { try configureSession(recording: false) }
         // Connected anew before every start. Switching voice processing on or off rebuilds the
         // engine's output, and a player left from before that plays nothing or the wrong way.
