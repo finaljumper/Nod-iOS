@@ -1,0 +1,13 @@
+.build/
+.swiftpm/
+*.xcodeproj
+xcuserdata/
+DerivedData/
+.DS_Store
+
+# The Supertonic 3 voice model is fetched with Scripts/fetch-supertonic.sh.
+App/Resources/Supertonic3/*
+!App/Resources/Supertonic3/README.md
+
+# The Silero voice detector is fetched with Scripts/fetch-vad.sh.
+App/Resources/SileroVAD/*

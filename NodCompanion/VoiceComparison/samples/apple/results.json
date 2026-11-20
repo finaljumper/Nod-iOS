@@ -1,0 +1,60 @@
+{
+ "engine": "apple",
+ "rows": [
+  {
+   "id": "en",
+   "engine": "apple",
+   "seconds": 1.4406592500163242,
+   "audio_seconds": 5.379583333333334,
+   "rtf": 0.26780127023771805,
+   "first_audio_seconds": 1.440435916010756,
+   "voice_switches": 0
+  },
+  {
+   "id": "ru",
+   "engine": "apple",
+   "seconds": 0.6552367499971297,
+   "audio_seconds": 4.953916666666666,
+   "rtf": 0.13226640536890938,
+   "first_audio_seconds": 0.6550136670120992,
+   "voice_switches": 0
+  },
+  {
+   "id": "ko",
+   "engine": "apple",
+   "seconds": 0.8157177919929381,
+   "audio_seconds": 7.219166666666666,
+   "rtf": 0.11299334530665195,
+   "first_audio_seconds": 0.8154934170015622,
+   "voice_switches": 0
+  },
+  {
+   "id": "ru-en",
+   "engine": "apple",
+   "seconds": 3.1884756659856066,
+   "audio_seconds": 5.486,
+   "rtf": 0.5812022723269425,
+   "first_audio_seconds": 0.601905124989571,
+   "voice_switches": 4
+  },
+  {
+   "id": "ko-en",
+   "engine": "apple",
+   "seconds": 3.605688250012463,
+   "audio_seconds": 5.929875,
+   "rtf": 0.6080546807500096,
+   "first_audio_seconds": 0.742856708006002,
+   "voice_switches": 4
+  },
+  {
+   "id": "en-ru-ko",
+   "engine": "apple",
+   "seconds": 3.40830987499794,
+   "audio_seconds": 6.811458333333333,
+   "rtf": 0.5003788775039031,
+   "first_audio_seconds": 0.6914708339900244,
+   "voice_switches": 4
+  }
+ ],
+ "note": "Rendered to a file with the macOS say command, using the same standard-quality system voices AVSpeechSynthesizer uses."
+}

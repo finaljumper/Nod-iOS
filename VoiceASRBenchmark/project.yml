@@ -1,0 +1,66 @@
+# XcodeGen project specification. Generate the Xcode project with:
+#   brew install xcodegen && xcodegen generate
+# This file is the source of truth; VoiceASRBenchmark.xcodeproj is generated and not checked in.
+name: VoiceASRBenchmark
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "17.0"
+    macOS: "14.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+packages:
+  VoiceASRBenchmarkKit:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  VoiceASRBenchmark:
+    type: application
+    supportedDestinations: [iOS, macOS]
+    sources:
+      - path: App
+        excludes:
+          - "Resources/**"
+          - "VoiceASRBenchmark.entitlements"
+      - path: App/Resources/Dataset
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: VoiceASRBenchmarkKit
+        product: ASRBenchCore
+      - package: VoiceASRBenchmarkKit
+        product: ASRBenchEngines
+      - package: VoiceASRBenchmarkKit
+        product: ASRBenchMLXEngines
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.VoiceASRBenchmark
+        PRODUCT_NAME: VoiceASRBenchmark
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGN_ENTITLEMENTS: App/VoiceASRBenchmark.entitlements
+        ENABLE_HARDENED_RUNTIME: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_CFBundleDisplayName: ASR Benchmark
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.developer-tools
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        # Lets you copy dataset folders into the app's Documents directory with Finder or Files.
+        INFOPLIST_KEY_UIFileSharingEnabled: YES
+        INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace: YES
+        # The benchmark replays files and never records. The Speech framework may still ask for
+        # this description on some OS versions.
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Transcribes benchmark recordings on this device to compare speech recognition engines.
+schemes:
+  VoiceASRBenchmark:
+    build:
+      targets:
+        VoiceASRBenchmark: all
+    run:
+      config: Release
+    profile:
+      config: Release

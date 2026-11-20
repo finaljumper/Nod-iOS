@@ -1,0 +1,60 @@
+# XcodeGen specification of the app. Generate the Xcode project with: xcodegen generate
+# This file is the source of truth; NodCompanion.xcodeproj is generated and not checked in.
+name: NodCompanion
+options:
+  bundleIdPrefix: com.example
+  deploymentTarget:
+    iOS: "26.0"
+  createIntermediateGroups: true
+  developmentLanguage: en
+packages:
+  NodCompanionKit:
+    path: .
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  NodCompanion:
+    type: application
+    platform: iOS
+    sources:
+      - path: App
+        excludes:
+          - "Resources/**"
+      # The Supertonic 3 model, fetched with Scripts/fetch-supertonic.sh. Copied as a folder so
+      # that the files keep their names inside the app.
+      - path: App/Resources/Supertonic3
+        type: folder
+        buildPhase: resources
+      # The Silero voice detector, fetched with Scripts/fetch-vad.sh.
+      - path: App/Resources/SileroVAD
+        type: folder
+        buildPhase: resources
+    dependencies:
+      - package: NodCompanionKit
+        product: NodCore
+      - package: NodCompanionKit
+        product: NodSpeech
+    settings:
+      base:
+        # The identifier follows the owner's other apps; the team signs builds for real devices.
+        PRODUCT_BUNDLE_IDENTIFIER: Small-Problems-Software.NodCompanion
+        DEVELOPMENT_TEAM: HS7N84Z5GF
+        CODE_SIGN_STYLE: Automatic
+        PRODUCT_NAME: NodCompanion
+        GENERATE_INFOPLIST_FILE: YES
+        TARGETED_DEVICE_FAMILY: "1,2"
+        INFOPLIST_KEY_CFBundleDisplayName: Nod
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.productivity
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_NSMicrophoneUsageDescription: Nod listens to what you say so that you can talk to it. The audio is recognised on this device and is not sent anywhere.
+        INFOPLIST_KEY_NSSpeechRecognitionUsageDescription: Nod turns what you say into text on this device, so that it can be sent to your assistant.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+schemes:
+  NodCompanion:
+    build:
+      targets:
+        NodCompanion: all

@@ -1,0 +1,53 @@
+{
+ "engine": "qwen3-auto",
+ "rows": [
+  {
+   "id": "en",
+   "engine": "qwen3-auto",
+   "seconds": 1.3324374580115546,
+   "audio_seconds": 5.28,
+   "rtf": 0.25235557916885504,
+   "pieces": 1
+  },
+  {
+   "id": "ru",
+   "engine": "qwen3-auto",
+   "seconds": 1.4105373329948634,
+   "audio_seconds": 6.4,
+   "rtf": 0.2203964582804474,
+   "pieces": 1
+  },
+  {
+   "id": "ko",
+   "engine": "qwen3-auto",
+   "seconds": 1.9063007090007886,
+   "audio_seconds": 9.2,
+   "rtf": 0.20720659880443357,
+   "pieces": 1
+  },
+  {
+   "id": "ru-en",
+   "engine": "qwen3-auto",
+   "seconds": 1.1689572079922073,
+   "audio_seconds": 4.96,
+   "rtf": 0.2356768564500418,
+   "pieces": 1
+  },
+  {
+   "id": "ko-en",
+   "engine": "qwen3-auto",
+   "seconds": 0.8944084579998162,
+   "audio_seconds": 4.32,
+   "rtf": 0.20703899490736483,
+   "pieces": 1
+  },
+  {
+   "id": "en-ru-ko",
+   "engine": "qwen3-auto",
+   "seconds": 1.6686693329829723,
+   "audio_seconds": 8.0,
+   "rtf": 0.20858366662287153,
+   "pieces": 1
+  }
+ ]
+}

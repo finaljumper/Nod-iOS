@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 1,
+  "name": "Sample prompts (no audio)",
+  "description": "Manifest schema example. These entries are sentences to be read by real speakers; no audio ships with the app, so every entry is reported as missing audio and is skipped until a recording is added at its audioFile path. Transcripts must be edited to match what the speaker actually said.",
+  "recordings": [
+    {
+      "id": "en-conv-001",
+      "audioFile": "audio/en-conv-001.wav",
+      "transcript": "I was thinking we could grab dinner after work, maybe around seven if you're free.",
+      "languages": [
+        "en"
+      ],
+      "category": "conversational",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "ru-conv-001",
+      "audioFile": "audio/ru-conv-001.wav",
+      "transcript": "Слушай, я сегодня немного задержусь, давай созвонимся ближе к вечеру.",
+      "languages": [
+        "ru"
+      ],
+      "category": "conversational",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "ko-conv-001",
+      "audioFile": "audio/ko-conv-001.wav",
+      "transcript": "오늘 저녁에 시간 괜찮으면 같이 밥 먹을래요?",
+      "languages": [
+        "ko"
+      ],
+      "category": "conversational",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "ru-en-cs-001",
+      "audioFile": "audio/ru-en-cs-001.wav",
+      "transcript": "Напомни мне про meeting с командой завтра в десять и скинь agenda в чат.",
+      "languages": [
+        "ru",
+        "en"
+      ],
+      "category": "conversational",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "keyTerms": [
+        "meeting",
+        "agenda"
+      ]
+    },
+    {
+      "id": "ko-en-cs-001",
+      "audioFile": "audio/ko-en-cs-001.wav",
+      "transcript": "내일 오전 미팅 끝나고 feedback 정리해서 Slack에 올려 줘.",
+      "languages": [
+        "ko",
+        "en"
+      ],
+      "category": "conversational",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "keyTerms": [
+        "feedback",
+        "Slack"
+      ]
+    },
+    {
+      "id": "ru-ko-cs-001",
+      "audioFile": "audio/ru-ko-cs-001.wav",
+      "transcript": "Мы вчера ели 김치찌개, и это было очень вкусно, 진짜 맛있었어요.",
+      "languages": [
+        "ru",
+        "ko"
+      ],
+      "category": "conversational",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "keyTerms": [
+        "김치찌개"
+      ]
+    },
+    {
+      "id": "en-ru-ko-cs-001",
+      "audioFile": "audio/en-ru-ko-cs-001.wav",
+      "transcript": "Okay, давай так: I'll book the flight, а ты закажи отель, 그리고 일정은 내일 다시 확인하자.",
+      "languages": [
+        "en",
+        "ru",
+        "ko"
+      ],
+      "category": "conversational",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "en-cmd-001",
+      "audioFile": "audio/en-cmd-001.wav",
+      "transcript": "Set a timer for ten minutes.",
+      "languages": [
+        "en"
+      ],
+      "category": "command",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "ru-cmd-001",
+      "audioFile": "audio/ru-cmd-001.wav",
+      "transcript": "Поставь будильник на семь утра.",
+      "languages": [
+        "ru"
+      ],
+      "category": "command",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "ko-cmd-001",
+      "audioFile": "audio/ko-cmd-001.wav",
+      "transcript": "내일 아침 일곱 시에 알람 맞춰 줘.",
+      "languages": [
+        "ko"
+      ],
+      "category": "command",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "en-ru-cmd-001",
+      "audioFile": "audio/en-ru-cmd-001.wav",
+      "transcript": "Add молоко and хлеб to my shopping list.",
+      "languages": [
+        "en",
+        "ru"
+      ],
+      "category": "command",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "keyTerms": [
+        "молоко",
+        "хлеб"
+      ]
+    },
+    {
+      "id": "en-long-001",
+      "audioFile": "audio/en-long-001.wav",
+      "transcript": "So the thing I keep coming back to is that we planned the whole trip around the conference, but now that the dates have moved, I honestly don't know whether it still makes sense to fly out on Sunday or just wait and take the early train on Monday morning.",
+      "languages": [
+        "en"
+      ],
+      "category": "long-form",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "ru-long-001",
+      "audioFile": "audio/ru-long-001.wav",
+      "transcript": "Я вот всё думаю, что мы изначально планировали поездку под конференцию, а теперь, когда даты перенесли, я честно не понимаю, имеет ли смысл лететь в воскресенье или лучше подождать и поехать утренним поездом в понедельник.",
+      "languages": [
+        "ru"
+      ],
+      "category": "long-form",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "ko-long-001",
+      "audioFile": "audio/ko-long-001.wav",
+      "transcript": "원래는 학회 일정에 맞춰서 여행 계획을 다 세워 놨는데, 날짜가 바뀌는 바람에 일요일에 비행기를 타는 게 맞는지 아니면 월요일 아침 첫 기차를 타는 게 나은지 솔직히 잘 모르겠어요.",
+      "languages": [
+        "ko"
+      ],
+      "category": "long-form",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source"
+    },
+    {
+      "id": "en-ent-001",
+      "audioFile": "audio/en-ent-001.wav",
+      "transcript": "Schedule lunch with Dmitri Sokolov on Thursday, March 12th at 12:30 at Café Luna.",
+      "languages": [
+        "en"
+      ],
+      "category": "entities",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "keyTerms": [
+        "Dmitri Sokolov",
+        "Thursday",
+        "March 12th",
+        "12:30",
+        "Café Luna"
+      ]
+    },
+    {
+      "id": "ru-ent-001",
+      "audioFile": "audio/ru-ent-001.wav",
+      "transcript": "Запиши меня к доктору Кузнецовой на пятнадцатое апреля в девять тридцать.",
+      "languages": [
+        "ru"
+      ],
+      "category": "entities",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "keyTerms": [
+        "Кузнецовой",
+        "пятнадцатое апреля",
+        "девять тридцать"
+      ]
+    },
+    {
+      "id": "ko-ent-001",
+      "audioFile": "audio/ko-ent-001.wav",
+      "transcript": "다음 주 화요일 오후 세 시에 김민준 씨와 강남역에서 회의 잡아 줘.",
+      "languages": [
+        "ko"
+      ],
+      "category": "entities",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "keyTerms": [
+        "화요일",
+        "세 시",
+        "김민준",
+        "강남역"
+      ]
+    },
+    {
+      "id": "en-disf-001",
+      "audioFile": "audio/en-disf-001.wav",
+      "transcript": "Um, so I was, uh, wondering if we could, you know, move the call to, like, Friday?",
+      "languages": [
+        "en"
+      ],
+      "category": "disfluent",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "tags": [
+        "fillers"
+      ]
+    },
+    {
+      "id": "ru-disf-001",
+      "audioFile": "audio/ru-disf-001.wav",
+      "transcript": "Ну, это, как бы, я не уверен, э-э, давай, может, в пятницу?",
+      "languages": [
+        "ru"
+      ],
+      "category": "disfluent",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "tags": [
+        "fillers"
+      ]
+    },
+    {
+      "id": "ko-disf-001",
+      "audioFile": "audio/ko-disf-001.wav",
+      "transcript": "음, 그게, 저기, 어, 금요일로 옮길 수 있을까요?",
+      "languages": [
+        "ko"
+      ],
+      "category": "disfluent",
+      "speaker": "unassigned",
+      "source": "prompt-only: record this sentence, then set speaker and source",
+      "tags": [
+        "fillers"
+      ]
+    }
+  ]
+}

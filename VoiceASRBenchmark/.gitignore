@@ -1,0 +1,8 @@
+.build/
+.swiftpm/
+*.xcodeproj
+xcuserdata/
+DerivedData/
+.DS_Store
+# Recordings of real speakers are personal data: keep datasets out of the repository.
+Datasets/
