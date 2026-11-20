@@ -6,21 +6,22 @@ mode in which the app listens all the time and talking over a reply stops it.
 
 This is the app from the product brief (`../Nod_Voice_Companion_Project_Brief.md`) and the
 implementation specification (`../Nod_Voice_Companion_Implementation.md`). It talks to a
-self-hosted Nod over HTTPS once the connection is set up in Settings; until then a stand-in
-inside the app answers. **The connection has not been run against a real Nod yet.**
+self-hosted Nod over HTTPS once the connection is set up; the app starts with that setup
+when there is none, and a stand-in inside the app answers until then. It is in use on one
+iPhone 17 Pro against its owner's Nod; the automated tests run against a stand-in only.
 
 ## Status
 
 | Part | State |
 | --- | --- |
-| Conversation and dialogue logic (`NodCore`) | Written and tested: 121 unit tests pass |
-| Voice: Supertonic 3 through sherpa-onnx | Produces English and Korean audio on a Mac (0.3 to 0.7 s per sentence) and speaks in the iPhone simulator. Nobody has listened to it in this app |
-| Voice: Phonon through FluidAudio (English only) | On a Mac it renders about 17 to 20 times faster than real time, and Apple's recogniser transcribed its audio correctly. In the iPhone simulator the model downloads, loads and plays without an error. Nobody has listened to it |
-| Speech recognition: Apple, Rumble-2-Flash | On a Mac, audio files fed through the app's listening code came back as the right text, one result per utterance, in English and Korean. **None was run on iOS or with a real microphone** |
-| Dialogue mode | The screen and its states work in the simulator with the simulated microphone. **Microphone capture, echo cancellation and interrupting by voice have not been run anywhere**: the simulator has no speech recognition, and no real device was used |
-| Screens (`App/`) | Run in the iPhone simulator. Not run on a real iPhone or iPad, not checked on iPad layouts. The app builds for a real device |
-| Connection to Nod (`Sources/NodCore/Nod`) | Written from Nod's server source and tested against a stand-in server that answers in the same shapes; the network layer is tested against a local HTTP server. **Never run against a real Nod**: no address or key was available, and a test would act on the real agent |
-| Connection setup | In the simulator, against a stand-in for Nod on https://localhost: the three steps pass and the conversation appears; with live updates held back the check fails, says why, and nothing is saved. An http:// address is refused. **Not run against a real Nod** |
+| Conversation and dialogue logic (`NodCore`) | Written and tested: 127 unit tests pass |
+| Voice: Supertonic 3 through sherpa-onnx | Produces English and Korean audio on a Mac (0.3 to 0.7 s per sentence) and speaks in the iPhone simulator. On an iPhone 17 Pro it has been heard, in the dialogue and as the samples in Settings |
+| Voice: Phonon through FluidAudio (English only) | On a Mac it renders about 17 to 20 times faster than real time, and Apple's recogniser transcribed its audio correctly. In the iPhone simulator the model downloads, loads and plays without an error. Not confirmed on a device |
+| Speech recognition: Apple, Rumble-2-Flash | On a Mac, audio files fed through the app's listening code came back as the right text, one result per utterance, in English and Korean. On an iPhone 17 Pro the dialogue has been used with a real microphone; which recogniser was chosen then is not recorded, and Rumble-2-Flash is not confirmed on a device |
+| Dialogue mode | Used on an iPhone 17 Pro. With the first build the app heard its own voice on the loudspeaker and cut itself off. The echo handling written since (see below) was tested with recorded audio on a Mac and is installed on that phone; **whether it cures the cut-off there is not confirmed** |
+| Screens (`App/`) | Run in the iPhone simulator and on an iPhone 17 Pro, where its owner confirmed the conversation at launch and the Settings samples. Not run on an iPad, not checked on iPad layouts |
+| Connection to Nod (`Sources/NodCore/Nod`) | Written from Nod's server source and tested against a stand-in server that answers in the same shapes; the network layer is tested against a local HTTP server. On the iPhone it connects to a real Nod and shows its conversation (83 entries at the time), and its owner reports the dialogue working as a proof of concept. **Approvals, attachments, Stop and recovering from lost events are not confirmed against a real Nod**, and no automated test runs against one, because a test would act on the real agent |
+| Connection setup | In the simulator, against a stand-in for Nod on https://localhost: the three steps pass and the conversation appears; with live updates held back the check fails, says why, and nothing is saved. An http:// address is refused. **The three-step setup has not been run against a real Nod**; the iPhone was connected with the two-step setup that preceded it |
 
 ## Getting started
 
@@ -114,6 +115,7 @@ Sources/NodCore/              no Apple UI or audio frameworks; everything here i
   Models.swift                messages, tools, approvals, phases
   Transport.swift             NodTransport: the app's side of the contract with Nod
   ConversationModel.swift     the rules: sending, interrupting, approvals, dialogue, reconnecting
+  ConversationStore.swift     keeps the conversation in a file, so the app opens with it
   DemoTransport.swift         the stand-in for Nod
   NodAddress.swift            turns the address the user typed into Nod's HTTPS origin
   Nod/NodAPI.swift            Nod's data shapes and the event-stream parser
@@ -131,7 +133,7 @@ Sources/NodSpeech/
   PhononVoice.swift           text to audio with Phonon (FluidAudio, Core ML)
   RenderedSpeechOutput.swift  speaks with whichever neural voice knows the language
   SystemSpeechOutput.swift    the system's voices, the fallback
-  UtteranceRecognizer.swift   the three recognisers as RecognitionEngine values
+  UtteranceRecognizer.swift   the two recognisers as RecognitionEngine values
   RumbleRecognizer.swift      Rumble-2-Flash through sherpa-onnx
   ModelDownloader.swift       fetches model files from Hugging Face into Application Support
   VoiceDetector.swift         Silero voice detector (sherpa-onnx): is this sound a voice?
@@ -250,9 +252,10 @@ Two things to know before changing this part:
 
 - The dialogue ran on an iPhone 17 Pro as a proof of concept. On the loudspeaker the app heard
   its own voice and cut itself off. The playback-aware cutoff, the voice detector and the
-  pause-then-decide step were written against that and tested with recorded audio on a Mac,
-  **not yet on the phone**. How strong the echo is on a real device decides how loudly one has
-  to speak to interrupt; `UtteranceEndpointer.Settings` holds the numbers.
+  pause-then-decide step were written against that and tested with recorded audio on a Mac.
+  They are installed on the phone, but **whether they cure the cut-off there is not
+  confirmed**. How strong the echo is on a real device decides how loudly one has to speak
+  to interrupt; `UtteranceEndpointer.Settings` holds the numbers.
 - The app's own voice is recognised by its words. A short answer that mostly repeats what the
   app just said can be taken for an echo and ignored. Another person talking nearby is a voice
   and is taken for you.
@@ -289,12 +292,14 @@ Two things to know before changing this part:
 - Supertone has stopped developing the open-source Supertonic models. The weights are under
   the BigScience OpenRAIL-M licence.
 - The Supertonic model adds about 145 MB to the app.
-- The app stores no conversation itself. With Nod it is read from Nod each time; with the
-  stand-in it is gone when the app quits.
-- **Nothing here has talked to a real Nod.** What is most likely to differ from the stand-in:
-  which turn carries a reply after an approval or a question, the text Nod expects with an
-  approval answer, what `activity` reports while tools run, and what Nod does with a message
-  that arrives while a turn is running.
+- With Nod, the conversation as it was last shown is kept on the device (see Getting
+  started); the text of the messages is in that file. With the stand-in the conversation is
+  gone when the app quits.
+- **Only part of this has been seen working against a real Nod**: connecting and showing the
+  conversation, traced on one iPhone, and the dialogue as its owner reports it. What is most likely to differ from
+  the stand-in in the rest: which turn carries a reply after an approval or a question, the
+  text Nod expects with an approval answer, what `activity` reports while tools run, and
+  what Nod does with a message that arrives while a turn is running.
 - Nod's questions with answer choices are shown as plain text; there are no choice buttons.
   Verification codes and payments are not handled.
 - Attachments: photos are scaled to 2048 pixels and sent as JPEG, which also drops their
@@ -304,8 +309,9 @@ Two things to know before changing this part:
   tested against the stand-in server only.
 - Replies are rendered as Markdown block by block; nested quotes, images and footnotes are
   shown as plain text. What the user typed is shown as typed.
-- Only the most recent messages Nod returns with its state (up to 150) are shown; there is no
-  loading of earlier ones.
+- Only the most recent messages Nod returns with its state (up to 150) are available; earlier
+  ones are not fetched from Nod. *Show Earlier Messages* only reveals entries that are
+  already loaded.
 - While an approval is open, also an old one from before, spoken input is held back. It has to
   be decided or run out first.
 - The tool lines shown during a turn are the app's own and disappear when Nod's record
